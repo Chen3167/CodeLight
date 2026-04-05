@@ -20,7 +20,7 @@ export async function startApi() {
 
     await app.register(cors, {
         origin: '*',
-        methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+        methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     });
 
     app.get('/health', async () => ({ status: 'ok' }));
