@@ -100,7 +100,7 @@ struct ServerConfig: Codable, Identifiable, Hashable {
 }
 
 /// Session info from server.
-struct SessionInfo: Identifiable, Equatable {
+struct SessionInfo: Identifiable {
     let id: String
     let tag: String
     let metadata: SessionMetadata?
