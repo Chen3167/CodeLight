@@ -14,12 +14,18 @@
 
 /* Begin PBXFileReference section */
 		CL30000100000001AA000001 /* CodeLight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CodeLight.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CLW0000100000001AA000001 /* CodeLightWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "CodeLightWidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CL40000100000001AA000001 /* CodeLight */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = CodeLight;
+			sourceTree = "<group>";
+		};
+		CLW0000200000001AA000001 /* CodeLightWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CodeLightWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -42,6 +48,7 @@
 			isa = PBXGroup;
 			children = (
 				CL40000100000001AA000001 /* CodeLight */,
+				CLW0000200000001AA000001 /* CodeLightWidget */,
 				CL60000100000002AA000002 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -50,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				CL30000100000001AA000001 /* CodeLight.app */,
+				CLW0000100000001AA000001 /* CodeLightWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -64,10 +72,12 @@
 				CL50000100000002AA000002 /* Sources */,
 				CL50000100000001AA000001 /* Frameworks */,
 				CL50000100000003AA000003 /* Resources */,
+				CLW0000600000001AA000001 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				CLW0000500000001AA000001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				CL40000100000001AA000001 /* CodeLight */,
@@ -82,7 +92,63 @@
 			productReference = CL30000100000001AA000001 /* CodeLight.app */;
 			productType = "com.apple.product-type.application";
 		};
+		CLW0000300000001AA000001 /* CodeLightWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CLW0000800000001AA000001 /* Build configuration list for PBXNativeTarget "CodeLightWidgetExtension" */;
+			buildPhases = (
+				CLW0000300000002AA000002 /* Sources */,
+				CLW0000300000003AA000003 /* Frameworks */,
+				CLW0000300000004AA000004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				CLW0000200000001AA000001 /* CodeLightWidget */,
+			);
+			name = CodeLightWidgetExtension;
+			productName = CodeLightWidgetExtension;
+			productReference = CLW0000100000001AA000001 /* CodeLightWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		CLW0000400000001AA000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CL90000100000001AA000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CLW0000300000001AA000001;
+			remoteInfo = CodeLightWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		CLW0000500000001AA000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CLW0000300000001AA000001 /* CodeLightWidgetExtension */;
+			targetProxy = CLW0000400000001AA000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CLW0000600000001AA000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CLW0000700000001AA000001 /* CodeLightWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXBuildFile for Widget embed section */
+		CLW0000700000001AA000001 /* CodeLightWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CLW0000100000001AA000001 /* CodeLightWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile for Widget embed section */
 
 /* Begin PBXProject section */
 		CL90000100000001AA000001 /* Project object */ = {
@@ -93,6 +159,9 @@
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					CL70000100000001AA000001 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					CLW0000300000001AA000001 = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
 				};
@@ -117,6 +186,7 @@
 			projectRoot = "";
 			targets = (
 				CL70000100000001AA000001 /* CodeLight */,
+				CLW0000300000001AA000001 /* CodeLightWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -134,6 +204,27 @@
 /* Begin PBXSourcesBuildPhase section */
 		CL50000100000002AA000002 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CLW0000300000002AA000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CLW0000300000003AA000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CLW0000300000004AA000004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -272,6 +363,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CodeLight;
 				INFOPLIST_KEY_NSCameraUsageDescription = "CodeLight needs camera access to scan QR codes for device pairing.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -303,6 +395,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CodeLight;
 				INFOPLIST_KEY_NSCameraUsageDescription = "CodeLight needs camera access to scan QR codes for device pairing.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -317,6 +410,56 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CLW0000900000001AA000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2DKS5U9LV4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = CodeLightWidget;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codelight.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CLW0000900000002AA000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2DKS5U9LV4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = CodeLightWidget;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codelight.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -340,6 +483,15 @@
 			buildConfigurations = (
 				CLB0000100000003AA000003 /* Debug */,
 				CLB0000100000004AA000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CLW0000800000001AA000001 /* Build configuration list for PBXNativeTarget "CodeLightWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CLW0000900000001AA000001 /* Debug */,
+				CLW0000900000002AA000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
