@@ -15,9 +15,10 @@ export function registerSessionHandler(
     }, callback?: (result: any) => void) => {
         try {
             const session = await db.session.findFirst({
-                where: { id: data.sid, deviceId },
+                where: { id: data.sid },
             });
             if (!session) {
+                console.log(`[sessionHandler] Session not found: ${data.sid}`);
                 callback?.({ error: 'Session not found' });
                 return;
             }
@@ -62,7 +63,6 @@ export function registerSessionHandler(
         const result = await db.session.updateMany({
             where: {
                 id: data.sid,
-                deviceId,
                 metadataVersion: data.expectedVersion,
             },
             data: {

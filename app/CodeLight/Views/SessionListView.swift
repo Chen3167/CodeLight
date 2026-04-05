@@ -49,11 +49,16 @@ struct SessionListView: View {
             ChatView(sessionId: sessionId)
         }
         .task {
-            await appState.connectTo(server)
+            // Don't re-connect, RootView already did that
             if let socket = appState.socket {
                 do {
                     appState.sessions = try await socket.fetchSessions()
-                } catch {}
+                    print("[SessionList] Loaded \(appState.sessions.count) sessions")
+                } catch {
+                    print("[SessionList] Fetch error: \(error)")
+                }
+            } else {
+                print("[SessionList] No socket available")
             }
             isLoading = false
         }

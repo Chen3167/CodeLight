@@ -24,6 +24,11 @@ export async function startApi() {
         methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     });
 
+    // Request logging
+    app.addHook('onRequest', async (request) => {
+        console.log(`${request.method} ${request.url}`);
+    });
+
     app.get('/health', async () => ({ status: 'ok' }));
 
     await app.register(authRoutes);

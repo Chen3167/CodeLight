@@ -10,8 +10,8 @@ export async function sessionRoutes(app: FastifyInstance) {
     app.get('/v1/sessions', {
         preHandler: authMiddleware,
     }, async (request) => {
+        // Return all sessions (cross-device visibility for personal server)
         const sessions = await db.session.findMany({
-            where: { deviceId: request.deviceId! },
             orderBy: { updatedAt: 'desc' },
             take: 150,
         });
@@ -55,7 +55,7 @@ export async function sessionRoutes(app: FastifyInstance) {
         const { after_seq, limit } = request.query as { after_seq: number; limit: number };
 
         const session = await db.session.findFirst({
-            where: { id: sessionId, deviceId: request.deviceId! },
+            where: { id: sessionId },
         });
         if (!session) {
             return reply.code(404).send({ error: 'Session not found' });
@@ -91,7 +91,7 @@ export async function sessionRoutes(app: FastifyInstance) {
         const { messages } = request.body as { messages: Array<{ content: string; localId?: string }> };
 
         const session = await db.session.findFirst({
-            where: { id: sessionId, deviceId: request.deviceId! },
+            where: { id: sessionId },
         });
         if (!session) {
             return reply.code(404).send({ error: 'Session not found' });
@@ -151,7 +151,7 @@ export async function sessionRoutes(app: FastifyInstance) {
         const { sessionId } = request.params as { sessionId: string };
 
         const session = await db.session.findFirst({
-            where: { id: sessionId, deviceId: request.deviceId! },
+            where: { id: sessionId },
         });
         if (!session) {
             return reply.code(404).send({ error: 'Session not found' });
@@ -182,7 +182,6 @@ export async function sessionRoutes(app: FastifyInstance) {
         const result = await db.session.updateMany({
             where: {
                 id: sessionId,
-                deviceId: request.deviceId!,
                 metadataVersion: expectedVersion,
             },
             data: {

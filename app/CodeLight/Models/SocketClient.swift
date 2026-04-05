@@ -27,10 +27,15 @@ final class SocketClient {
     // MARK: - Auth
 
     func authenticate() async throws {
+        print("[SocketClient] Step 1: Creating key...")
+        let _ = try keyManager.getOrCreateIdentityKey()
+        print("[SocketClient] Step 2: Key ready")
+
         let challenge = UUID().uuidString
         let challengeData = Data(challenge.utf8)
         let signature = try keyManager.sign(challengeData)
         let publicKey = try keyManager.publicKeyBase64()
+        print("[SocketClient] Step 3: Signed challenge, pubkey=\(publicKey.prefix(20))...")
 
         let request = AuthRequest(
             publicKey: publicKey,
@@ -43,11 +48,15 @@ final class SocketClient {
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.httpBody = try JSONEncoder().encode(request)
+        urlRequest.timeoutInterval = 10
 
-        let (data, _) = try await URLSession.shared.data(for: urlRequest)
-        let response = try JSONDecoder().decode(AuthResponse.self, from: data)
+        print("[SocketClient] Step 4: Sending auth to \(url)...")
+        let (data, response) = try await URLSession.shared.data(for: urlRequest)
+        let httpResponse = response as? HTTPURLResponse
+        print("[SocketClient] Step 5: Got \(httpResponse?.statusCode ?? -1), body=\(String(data: data, encoding: .utf8)?.prefix(100) ?? "nil")")
+        let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
 
-        if let t = response.token {
+        if let t = authResponse.token {
             self.token = t
             try keyManager.storeToken(t, forServer: serverUrl)
         }

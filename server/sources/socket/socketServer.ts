@@ -19,9 +19,11 @@ export function startSocket(server: HttpServer) {
     });
 
     io.on('connection', (socket) => {
-        const token = socket.handshake.auth.token as string | undefined;
-        const clientType = (socket.handshake.auth.clientType as string) || 'user-scoped';
-        const sessionId = socket.handshake.auth.sessionId as string | undefined;
+        // Support both auth object and query params (Swift Socket.io client uses query)
+        const token = (socket.handshake.auth.token || socket.handshake.query.token) as string | undefined;
+        const clientType = ((socket.handshake.auth.clientType || socket.handshake.query.clientType) as string) || 'user-scoped';
+        const sessionId = (socket.handshake.auth.sessionId || socket.handshake.query.sessionId) as string | undefined;
+        console.log(`Socket connection: clientType=${clientType}, hasToken=${!!token}`);
 
         if (!token) {
             socket.disconnect();

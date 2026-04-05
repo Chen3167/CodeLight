@@ -10,12 +10,47 @@
 		CL10000100000001AA000001 /* SocketIO in Frameworks */ = {isa = PBXBuildFile; productRef = CL20000100000001AA000001 /* SocketIO */; };
 		CL10000100000002AA000002 /* CodeLightProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = CL20000100000002AA000002 /* CodeLightProtocol */; };
 		CL10000100000003AA000003 /* CodeLightCrypto in Frameworks */ = {isa = PBXBuildFile; productRef = CL20000100000003AA000003 /* CodeLightCrypto */; };
+		CLW0000700000001AA000001 /* CodeLightWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CLW0000100000001AA000001 /* CodeLightWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		CLW0000400000001AA000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CL90000100000001AA000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CLW0000300000001AA000001;
+			remoteInfo = CodeLightWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CLW0000600000001AA000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CLW0000700000001AA000001 /* CodeLightWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		CL30000100000001AA000001 /* CodeLight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CodeLight.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		CLW0000100000001AA000001 /* CodeLightWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "CodeLightWidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CL30000100000001AA000001 /* CodeLight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CodeLight.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CLW0000100000001AA000001 /* CodeLightWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CodeLightWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CLW0000200000002AA000002 /* Exceptions for "CodeLightWidget" folder in "CodeLightWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = CLW0000300000001AA000001 /* CodeLightWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CL40000100000001AA000001 /* CodeLight */ = {
@@ -25,6 +60,9 @@
 		};
 		CLW0000200000001AA000001 /* CodeLightWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CLW0000200000002AA000002 /* Exceptions for "CodeLightWidget" folder in "CodeLightWidgetExtension" target */,
+			);
 			path = CodeLightWidget;
 			sourceTree = "<group>";
 		};
@@ -38,6 +76,13 @@
 				CL10000100000001AA000001 /* SocketIO in Frameworks */,
 				CL10000100000002AA000002 /* CodeLightProtocol in Frameworks */,
 				CL10000100000003AA000003 /* CodeLightCrypto in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CLW0000300000003AA000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -114,49 +159,13 @@
 		};
 /* End PBXNativeTarget section */
 
-/* Begin PBXContainerItemProxy section */
-		CLW0000400000001AA000001 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CL90000100000001AA000001 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CLW0000300000001AA000001;
-			remoteInfo = CodeLightWidgetExtension;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXTargetDependency section */
-		CLW0000500000001AA000001 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CLW0000300000001AA000001 /* CodeLightWidgetExtension */;
-			targetProxy = CLW0000400000001AA000001 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		CLW0000600000001AA000001 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				CLW0000700000001AA000001 /* CodeLightWidgetExtension.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
-/* Begin PBXBuildFile for Widget embed section */
-		CLW0000700000001AA000001 /* CodeLightWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CLW0000100000001AA000001 /* CodeLightWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-/* End PBXBuildFile for Widget embed section */
-
 /* Begin PBXProject section */
 		CL90000100000001AA000001 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2610;
-				LastUpgradeCheck = 2610;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					CL70000100000001AA000001 = {
 						CreatedOnToolsVersion = 26.1.1;
@@ -176,9 +185,9 @@
 			mainGroup = CL60000100000001AA000001;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				CLA0000100000001AA000001 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */,
-				CLA0000100000002AA000002 /* XCLocalSwiftPackageReference "CodeLightProtocol" */,
-				CLA0000100000003AA000003 /* XCLocalSwiftPackageReference "CodeLightCrypto" */,
+				CLA0000100000001AA000001 /* XCRemoteSwiftPackageReference "socket" */,
+				CLA0000100000002AA000002 /* XCLocalSwiftPackageReference "../packages/CodeLightProtocol" */,
+				CLA0000100000003AA000003 /* XCLocalSwiftPackageReference "../packages/CodeLightCrypto" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CL60000100000002AA000002 /* Products */;
@@ -193,6 +202,13 @@
 
 /* Begin PBXResourcesBuildPhase section */
 		CL50000100000003AA000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CLW0000300000004AA000004 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -216,21 +232,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CLW0000300000003AA000003 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CLW0000300000004AA000004 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CLW0000500000001AA000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CLW0000300000001AA000001 /* CodeLightWidgetExtension */;
+			targetProxy = CLW0000400000001AA000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		CLB0000100000001AA000001 /* Debug */ = {
@@ -291,6 +301,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -347,6 +358,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -359,7 +371,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2DKS5U9LV4;
+				DEVELOPMENT_TEAM = 4GT6V2DUTF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CodeLight;
 				INFOPLIST_KEY_NSCameraUsageDescription = "CodeLight needs camera access to scan QR codes for device pairing.";
@@ -391,7 +403,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2DKS5U9LV4;
+				DEVELOPMENT_TEAM = 4GT6V2DUTF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CodeLight;
 				INFOPLIST_KEY_NSCameraUsageDescription = "CodeLight needs camera access to scan QR codes for device pairing.";
@@ -421,8 +433,9 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2DKS5U9LV4;
-				GENERATE_INFOPLIST_FILE = YES;
+				DEVELOPMENT_TEAM = 4GT6V2DUTF;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CodeLightWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CodeLightWidget;
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -446,8 +459,9 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2DKS5U9LV4;
-				GENERATE_INFOPLIST_FILE = YES;
+				DEVELOPMENT_TEAM = 4GT6V2DUTF;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CodeLightWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CodeLightWidget;
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -498,8 +512,19 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		CLA0000100000002AA000002 /* XCLocalSwiftPackageReference "../packages/CodeLightProtocol" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../packages/CodeLightProtocol;
+		};
+		CLA0000100000003AA000003 /* XCLocalSwiftPackageReference "../packages/CodeLightCrypto" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../packages/CodeLightCrypto;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
-		CLA0000100000001AA000001 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */ = {
+		CLA0000100000001AA000001 /* XCRemoteSwiftPackageReference "socket" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/socketio/socket.io-client-swift";
 			requirement = {
@@ -509,31 +534,20 @@
 		};
 /* End XCRemoteSwiftPackageReference section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		CLA0000100000002AA000002 /* XCLocalSwiftPackageReference "CodeLightProtocol" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../packages/CodeLightProtocol;
-		};
-		CLA0000100000003AA000003 /* XCLocalSwiftPackageReference "CodeLightCrypto" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../packages/CodeLightCrypto;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
 		CL20000100000001AA000001 /* SocketIO */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CLA0000100000001AA000001 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */;
+			package = CLA0000100000001AA000001 /* XCRemoteSwiftPackageReference "socket" */;
 			productName = SocketIO;
 		};
 		CL20000100000002AA000002 /* CodeLightProtocol */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CLA0000100000002AA000002 /* XCLocalSwiftPackageReference "CodeLightProtocol" */;
+			package = CLA0000100000002AA000002 /* XCLocalSwiftPackageReference "../packages/CodeLightProtocol" */;
 			productName = CodeLightProtocol;
 		};
 		CL20000100000003AA000003 /* CodeLightCrypto */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CLA0000100000003AA000003 /* XCLocalSwiftPackageReference "CodeLightCrypto" */;
+			package = CLA0000100000003AA000003 /* XCLocalSwiftPackageReference "../packages/CodeLightCrypto" */;
 			productName = CodeLightCrypto;
 		};
 /* End XCSwiftPackageProductDependency section */

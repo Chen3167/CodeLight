@@ -8,7 +8,7 @@ struct PairingView: View {
     @State private var scannedCode: String?
     @State private var isProcessing = false
     @State private var errorMessage: String?
-    @State private var manualUrl = ""
+    @State private var manualUrl = "https://island.wdao.chat"
     @State private var showManualEntry = false
 
     var body: some View {

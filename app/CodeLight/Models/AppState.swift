@@ -50,8 +50,10 @@ final class AppState: ObservableObject {
                 self?.sessions = sessions
             }
             isConnected = true
+            print("[AppState] Connected to \(server.url)")
         } catch {
             isConnected = false
+            print("[AppState] Connection failed: \(error)")
         }
     }
 
