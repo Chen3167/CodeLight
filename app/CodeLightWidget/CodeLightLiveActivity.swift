@@ -7,7 +7,7 @@ struct CodeLightLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: CodeLightActivityAttributes.self) { context in
             // Lock Screen / StandBy presentation
-            LockScreenView(state: context.state)
+            LockScreenView(state: context.state, attributes: context.attributes)
                 .activityBackgroundTint(.black)
                 .activitySystemActionForegroundColor(.white)
 
@@ -15,47 +15,69 @@ struct CodeLightLiveActivity: Widget {
             DynamicIsland {
                 // Expanded Dynamic Island
                 DynamicIslandExpandedRegion(.leading) {
-                    Label(context.state.projectName, systemImage: phaseIcon(context.state.phase))
-                        .font(.caption)
-                        .foregroundStyle(phaseColor(context.state.phase))
+                    HStack(spacing: 6) {
+                        PixelCharacterView(state: animationState(for: context.state.phase))
+                            .scaleEffect(0.6)
+                            .frame(width: 32, height: 28)
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(context.state.projectName)
+                                .font(.system(size: 12, weight: .semibold))
+                                .lineLimit(1)
+                                .foregroundStyle(.white)
+                            Text(phaseLabel(context.state.phase))
+                                .font(.system(size: 10))
+                                .foregroundStyle(phaseColor(context.state.phase))
+                        }
+                    }
                 }
 
                 DynamicIslandExpandedRegion(.trailing) {
                     Text(context.state.startedAt, style: .timer)
-                        .font(.caption2)
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
                         .foregroundStyle(.secondary)
+                        .frame(maxWidth: 50)
                 }
 
                 DynamicIslandExpandedRegion(.bottom) {
-                    if let toolName = context.state.toolName {
-                        HStack {
-                            Image(systemName: "wrench.fill")
-                                .font(.caption2)
+                    if let toolName = context.state.toolName, !toolName.isEmpty {
+                        HStack(spacing: 6) {
+                            Image(systemName: toolIcon(toolName))
+                                .font(.system(size: 10))
+                                .foregroundStyle(.cyan)
                             Text(toolName)
-                                .font(.caption)
+                                .font(.system(size: 11, design: .monospaced))
                                 .lineLimit(1)
+                                .foregroundStyle(.white.opacity(0.8))
+                            Spacer()
                         }
-                        .foregroundStyle(.secondary)
-                    } else {
-                        Text(phaseLabel(context.state.phase))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        .padding(.horizontal, 4)
                     }
                 }
             } compactLeading: {
-                // Compact leading — icon
-                Image(systemName: phaseIcon(context.state.phase))
-                    .foregroundStyle(phaseColor(context.state.phase))
+                // Compact leading — pixel cat
+                PixelCharacterView(state: animationState(for: context.state.phase))
+                    .scaleEffect(0.45)
+                    .frame(width: 24, height: 22)
             } compactTrailing: {
-                // Compact trailing — timer
-                Text(context.state.startedAt, style: .timer)
-                    .font(.caption2)
-                    .frame(width: 40)
+                // Compact trailing — phase indicator dot + tool short name
+                HStack(spacing: 3) {
+                    Circle()
+                        .fill(phaseColor(context.state.phase))
+                        .frame(width: 6, height: 6)
+                    if let toolName = context.state.toolName, !toolName.isEmpty {
+                        Text(toolName.prefix(4))
+                            .font(.system(size: 10, weight: .medium))
+                            .lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: 60)
             } minimal: {
-                // Minimal — just the icon
-                Image(systemName: phaseIcon(context.state.phase))
-                    .foregroundStyle(phaseColor(context.state.phase))
+                // Minimal — just the cat face (very small)
+                PixelCharacterView(state: animationState(for: context.state.phase))
+                    .scaleEffect(0.4)
+                    .frame(width: 20, height: 18)
             }
+            .keylineTint(phaseColor(context.state.phase))
         }
     }
 }
@@ -64,52 +86,70 @@ struct CodeLightLiveActivity: Widget {
 
 private struct LockScreenView: View {
     let state: CodeLightActivityAttributes.ContentState
+    let attributes: CodeLightActivityAttributes
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: phaseIcon(state.phase))
-                .font(.title2)
-                .foregroundStyle(phaseColor(state.phase))
+            PixelCharacterView(state: animationState(for: state.phase))
+                .frame(width: 52, height: 44)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(state.projectName)
-                    .font(.headline)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
                     .lineLimit(1)
 
-                if let toolName = state.toolName {
-                    Text(toolName)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                } else {
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(phaseColor(state.phase))
+                        .frame(width: 6, height: 6)
                     Text(phaseLabel(state.phase))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+
+                if let toolName = state.toolName, !toolName.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: toolIcon(toolName))
+                            .font(.system(size: 9))
+                        Text(toolName)
+                            .font(.system(size: 10, design: .monospaced))
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(.white.opacity(0.5))
                 }
             }
 
             Spacer()
 
-            Text(state.startedAt, style: .timer)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(state.startedAt, style: .timer)
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.6))
+                Text(attributes.serverName)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.white.opacity(0.3))
+            }
         }
-        .padding()
+        .padding(14)
+    }
+}
+
+// MARK: - Phase → AnimationState mapping
+
+private func animationState(for phase: String) -> AnimationState {
+    switch phase {
+    case "thinking": return .thinking
+    case "tool_running": return .working
+    case "waiting_approval": return .needsYou
+    case "idle": return .idle
+    case "ended": return .done
+    case "error": return .error
+    default: return .idle
     }
 }
 
 // MARK: - Phase Helpers
-
-private func phaseIcon(_ phase: String) -> String {
-    switch phase {
-    case "thinking": return "brain"
-    case "tool_running": return "wrench.and.screwdriver.fill"
-    case "waiting_approval": return "exclamationmark.shield.fill"
-    case "idle": return "pause.circle"
-    case "ended": return "checkmark.circle"
-    default: return "circle"
-    }
-}
 
 private func phaseColor(_ phase: String) -> Color {
     switch phase {
@@ -118,6 +158,7 @@ private func phaseColor(_ phase: String) -> Color {
     case "waiting_approval": return .orange
     case "idle": return .gray
     case "ended": return .green
+    case "error": return .red
     default: return .gray
     }
 }
@@ -125,10 +166,24 @@ private func phaseColor(_ phase: String) -> Color {
 private func phaseLabel(_ phase: String) -> String {
     switch phase {
     case "thinking": return "Thinking..."
-    case "tool_running": return "Running tool"
-    case "waiting_approval": return "Needs approval"
+    case "tool_running": return "Running"
+    case "waiting_approval": return "Needs you"
     case "idle": return "Idle"
     case "ended": return "Done"
+    case "error": return "Error"
     default: return phase
+    }
+}
+
+private func toolIcon(_ name: String) -> String {
+    switch name.lowercased() {
+    case "bash": return "terminal"
+    case "read": return "doc.text"
+    case "write": return "doc.badge.plus"
+    case "edit": return "pencil"
+    case "glob": return "folder.badge.magnifyingglass"
+    case "grep": return "magnifyingglass"
+    case "task": return "checklist"
+    default: return "wrench.and.screwdriver.fill"
     }
 }
