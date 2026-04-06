@@ -14,26 +14,37 @@ final class LiveActivityManager {
     private init() {}
 
     /// Start or update a Live Activity for a session.
-    func update(sessionId: String, phase: String, toolName: String?, projectName: String, serverName: String) {
-        print("[LiveActivity] update called: session=\(sessionId.prefix(8)) phase=\(phase) tool=\(toolName ?? "nil")")
-
+    func update(
+        sessionId: String,
+        phase: String?,
+        toolName: String?,
+        projectName: String,
+        serverName: String,
+        lastUserMessage: String? = nil,
+        lastAssistantSummary: String? = nil
+    ) {
         if let existing = activities[sessionId] {
-            // Update existing activity
+            let prevState = existing.content.state
+            // If phase not provided, preserve existing phase
+            let finalPhase = phase ?? prevState.phase
+            let finalTool = phase == nil ? prevState.toolName : toolName
+            let newUserMsg = lastUserMessage ?? prevState.lastUserMessage
+            let newAssistantSummary = lastAssistantSummary ?? prevState.lastAssistantSummary
+
             let state = CodeLightActivityAttributes.ContentState(
-                phase: phase,
-                toolName: toolName,
+                phase: finalPhase,
+                toolName: finalTool,
                 projectName: projectName,
-                startedAt: existing.content.state.startedAt  // Keep original start time
+                lastUserMessage: newUserMsg,
+                lastAssistantSummary: newAssistantSummary,
+                startedAt: existing.content.state.startedAt
             )
             Task {
                 await existing.update(ActivityContent(state: state, staleDate: nil))
-                print("[LiveActivity] Updated activity for \(sessionId.prefix(8))")
             }
-        } else {
-            // Start new activity
+        } else if let phaseUnwrapped = phase {
+            // Only create new activity if phase is provided
             let authInfo = ActivityAuthorizationInfo()
-            print("[LiveActivity] Activities enabled: \(authInfo.areActivitiesEnabled), frequent push enabled: \(authInfo.frequentPushesEnabled)")
-
             guard authInfo.areActivitiesEnabled else {
                 print("[LiveActivity] BLOCKED: Live Activities not enabled in iOS Settings")
                 return
@@ -41,9 +52,11 @@ final class LiveActivityManager {
 
             let attributes = CodeLightActivityAttributes(sessionId: sessionId, serverName: serverName)
             let state = CodeLightActivityAttributes.ContentState(
-                phase: phase,
+                phase: phaseUnwrapped,
                 toolName: toolName,
                 projectName: projectName,
+                lastUserMessage: lastUserMessage,
+                lastAssistantSummary: lastAssistantSummary,
                 startedAt: Date()
             )
 

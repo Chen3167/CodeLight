@@ -124,6 +124,10 @@ final class AppState: ObservableObject {
 
     private var idleTimers: [String: Timer] = [:]
 
+    /// Track last user/assistant message per session for Dynamic Island display
+    private var lastUserMessageBySession: [String: String] = [:]
+    private var lastAssistantMessageBySession: [String: String] = [:]
+
     private func updateLiveActivity(sessionId: String, content: String, serverName: String) {
         guard let data = content.data(using: .utf8),
               let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -131,20 +135,47 @@ final class AppState: ObservableObject {
 
         let projectName = sessions.first(where: { $0.id == sessionId })?.metadata?.title ?? "Session"
 
+        // Track user/assistant messages (truncated to fit ActivityKit 4KB limit)
+        if type == "user", let text = dict["text"] as? String {
+            lastUserMessageBySession[sessionId] = String(text.prefix(120))
+        } else if type == "assistant", let text = dict["text"] as? String, !text.isEmpty {
+            lastAssistantMessageBySession[sessionId] = String(text.prefix(200))
+        }
+
         // Phase messages from CodeIsland — authoritative session state
         if type == "phase" {
             let phase = dict["phase"] as? String ?? "idle"
             let toolName = dict["toolName"] as? String
+
+            // Phase messages from CodeIsland include latest user/assistant messages
+            if let userMsg = dict["lastUserMessage"] as? String {
+                lastUserMessageBySession[sessionId] = userMsg
+            }
+            if let assistantMsg = dict["lastAssistantSummary"] as? String {
+                lastAssistantMessageBySession[sessionId] = assistantMsg
+            }
+
             LiveActivityManager.shared.update(
                 sessionId: sessionId,
                 phase: phase,
                 toolName: toolName,
                 projectName: projectName,
-                serverName: serverName
+                serverName: serverName,
+                lastUserMessage: lastUserMessageBySession[sessionId],
+                lastAssistantSummary: lastAssistantMessageBySession[sessionId]
+            )
+        } else if type == "user" || type == "assistant" {
+            // Update existing activity's messages without changing phase (passing nil)
+            LiveActivityManager.shared.update(
+                sessionId: sessionId,
+                phase: nil,
+                toolName: nil,
+                projectName: projectName,
+                serverName: serverName,
+                lastUserMessage: lastUserMessageBySession[sessionId],
+                lastAssistantSummary: lastAssistantMessageBySession[sessionId]
             )
         }
-        // Other message types (user, assistant, tool, thinking) just trigger UI updates,
-        // not Live Activity changes — phase events are the source of truth
     }
 
     private func scheduleIdle(sessionId: String, projectName: String, serverName: String, after seconds: Double) {

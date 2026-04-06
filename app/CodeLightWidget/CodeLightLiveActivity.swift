@@ -39,19 +39,50 @@ struct CodeLightLiveActivity: Widget {
                 }
 
                 DynamicIslandExpandedRegion(.bottom) {
-                    if let toolName = context.state.toolName, !toolName.isEmpty {
-                        HStack(spacing: 6) {
-                            Image(systemName: toolIcon(toolName))
-                                .font(.system(size: 10))
-                                .foregroundStyle(.cyan)
-                            Text(toolName)
-                                .font(.system(size: 11, design: .monospaced))
-                                .lineLimit(1)
-                                .foregroundStyle(.white.opacity(0.8))
-                            Spacer()
+                    VStack(alignment: .leading, spacing: 4) {
+                        // Tool info (if active)
+                        if let toolName = context.state.toolName, !toolName.isEmpty {
+                            HStack(spacing: 6) {
+                                Image(systemName: toolIcon(toolName))
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.cyan)
+                                Text(toolName)
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .lineLimit(1)
+                                    .foregroundStyle(.white.opacity(0.8))
+                                Spacer()
+                            }
                         }
-                        .padding(.horizontal, 4)
+
+                        // Last user question
+                        if let userMsg = context.state.lastUserMessage, !userMsg.isEmpty {
+                            HStack(alignment: .top, spacing: 6) {
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(.blue)
+                                    .padding(.top, 1)
+                                Text(userMsg)
+                                    .font(.system(size: 11))
+                                    .lineLimit(2)
+                                    .foregroundStyle(.white.opacity(0.9))
+                            }
+                        }
+
+                        // Claude's latest response summary
+                        if let assistant = context.state.lastAssistantSummary, !assistant.isEmpty {
+                            HStack(alignment: .top, spacing: 6) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(.green)
+                                    .padding(.top, 1)
+                                Text(assistant)
+                                    .font(.system(size: 11))
+                                    .lineLimit(2)
+                                    .foregroundStyle(.white.opacity(0.7))
+                            }
+                        }
                     }
+                    .padding(.horizontal, 4)
                 }
             } compactLeading: {
                 // Compact leading — pixel cat
@@ -83,46 +114,78 @@ private struct LockScreenView: View {
     let attributes: CodeLightActivityAttributes
 
     var body: some View {
-        HStack(spacing: 12) {
-            PixelCharacterView(state: animationState(for: state.phase))
-                .frame(width: 52, height: 44)
+        VStack(alignment: .leading, spacing: 8) {
+            // Top row: cat + project + status + timer
+            HStack(spacing: 12) {
+                PixelCharacterView(state: animationState(for: state.phase))
+                    .frame(width: 52, height: 44)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(state.projectName)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(state.projectName)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
 
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(phaseColor(state.phase))
-                        .frame(width: 6, height: 6)
-                    Text(phaseLabel(state.phase))
-                        .font(.system(size: 11))
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-
-                if let toolName = state.toolName, !toolName.isEmpty {
                     HStack(spacing: 4) {
-                        Image(systemName: toolIcon(toolName))
-                            .font(.system(size: 9))
-                        Text(toolName)
-                            .font(.system(size: 10, design: .monospaced))
-                            .lineLimit(1)
+                        Circle()
+                            .fill(phaseColor(state.phase))
+                            .frame(width: 6, height: 6)
+                        Text(phaseLabel(state.phase))
+                            .font(.system(size: 11))
+                            .foregroundStyle(.white.opacity(0.7))
+
+                        if let toolName = state.toolName, !toolName.isEmpty {
+                            Text("·")
+                                .foregroundStyle(.white.opacity(0.3))
+                            Image(systemName: toolIcon(toolName))
+                                .font(.system(size: 9))
+                            Text(toolName)
+                                .font(.system(size: 10, design: .monospaced))
+                                .lineLimit(1)
+                        }
                     }
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(.white.opacity(0.6))
                 }
+
+                Spacer()
+
+                Text(state.startedAt, style: .timer)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.5))
             }
 
-            Spacer()
+            // Messages section
+            if state.lastUserMessage != nil || state.lastAssistantSummary != nil {
+                Divider()
+                    .background(.white.opacity(0.1))
 
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(state.startedAt, style: .timer)
-                    .font(.system(size: 13, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.white.opacity(0.6))
-                Text(attributes.serverName)
-                    .font(.system(size: 9))
-                    .foregroundStyle(.white.opacity(0.3))
+                VStack(alignment: .leading, spacing: 6) {
+                    if let userMsg = state.lastUserMessage, !userMsg.isEmpty {
+                        HStack(alignment: .top, spacing: 6) {
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.blue)
+                                .padding(.top, 2)
+                            Text(userMsg)
+                                .font(.system(size: 12))
+                                .foregroundStyle(.white.opacity(0.9))
+                                .lineLimit(2)
+                        }
+                    }
+
+                    if let assistant = state.lastAssistantSummary, !assistant.isEmpty {
+                        HStack(alignment: .top, spacing: 6) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.green)
+                                .padding(.top, 2)
+                            Text(assistant)
+                                .font(.system(size: 12))
+                                .foregroundStyle(.white.opacity(0.7))
+                                .lineLimit(3)
+                        }
+                    }
+                }
             }
         }
         .padding(14)
