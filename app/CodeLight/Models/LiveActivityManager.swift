@@ -15,22 +15,27 @@ final class LiveActivityManager {
 
     /// Start or update a Live Activity for a session.
     func update(sessionId: String, phase: String, toolName: String?, projectName: String, serverName: String) {
+        print("[LiveActivity] update called: session=\(sessionId.prefix(8)) phase=\(phase) tool=\(toolName ?? "nil")")
+
         if let existing = activities[sessionId] {
             // Update existing activity
             let state = CodeLightActivityAttributes.ContentState(
                 phase: phase,
                 toolName: toolName,
                 projectName: projectName,
-                startedAt: Date()
+                startedAt: existing.content.state.startedAt  // Keep original start time
             )
             Task {
                 await existing.update(ActivityContent(state: state, staleDate: nil))
-                Self.logger.debug("Updated activity for \(sessionId): \(phase)")
+                print("[LiveActivity] Updated activity for \(sessionId.prefix(8))")
             }
         } else {
             // Start new activity
-            guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-                Self.logger.info("Live Activities not enabled")
+            let authInfo = ActivityAuthorizationInfo()
+            print("[LiveActivity] Activities enabled: \(authInfo.areActivitiesEnabled), frequent push enabled: \(authInfo.frequentPushesEnabled)")
+
+            guard authInfo.areActivitiesEnabled else {
+                print("[LiveActivity] BLOCKED: Live Activities not enabled in iOS Settings")
                 return
             }
 
@@ -49,9 +54,9 @@ final class LiveActivityManager {
                     pushType: nil
                 )
                 activities[sessionId] = activity
-                Self.logger.info("Started activity for \(sessionId)")
+                print("[LiveActivity] STARTED activity for \(sessionId.prefix(8))")
             } catch {
-                Self.logger.error("Failed to start activity: \(error)")
+                print("[LiveActivity] FAILED to start: \(error)")
             }
         }
     }

@@ -72,7 +72,10 @@ struct ChatView: View {
         }
         .navigationTitle(sessionTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await loadMessages() }
+        .task {
+            await loadMessages()
+            startLiveActivity()
+        }
         .refreshable { await loadMessages() }
         .onReceive(appState.newMessageSubject) { event in
             guard event.sessionId == sessionId else { return }
@@ -80,6 +83,20 @@ struct ChatView: View {
                 messages.append(event.message)
             }
         }
+    }
+
+    private func startLiveActivity() {
+        let session = appState.sessions.first { $0.id == sessionId }
+        let projectName = session?.metadata?.title ?? "Session"
+        let serverName = appState.currentServer?.name ?? "Server"
+        // Start with current state — will be updated by incoming messages
+        LiveActivityManager.shared.update(
+            sessionId: sessionId,
+            phase: session?.active == true ? "thinking" : "idle",
+            toolName: nil,
+            projectName: projectName,
+            serverName: serverName
+        )
     }
 
     // MARK: - Compose Bar

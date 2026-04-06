@@ -59,18 +59,12 @@ struct CodeLightLiveActivity: Widget {
                     .scaleEffect(0.45)
                     .frame(width: 24, height: 22)
             } compactTrailing: {
-                // Compact trailing — phase indicator dot + tool short name
-                HStack(spacing: 3) {
-                    Circle()
-                        .fill(phaseColor(context.state.phase))
-                        .frame(width: 6, height: 6)
-                    if let toolName = context.state.toolName, !toolName.isEmpty {
-                        Text(toolName.prefix(4))
-                            .font(.system(size: 10, weight: .medium))
-                            .lineLimit(1)
-                    }
-                }
-                .frame(maxWidth: 60)
+                // Compact trailing — show tool name OR phase label, with color
+                Text(compactText(context.state))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(phaseColor(context.state.phase))
+                    .lineLimit(1)
+                    .frame(maxWidth: 80)
             } minimal: {
                 // Minimal — just the cat face (very small)
                 PixelCharacterView(state: animationState(for: context.state.phase))
@@ -133,6 +127,15 @@ private struct LockScreenView: View {
         }
         .padding(14)
     }
+}
+
+// MARK: - Compact Text
+
+private func compactText(_ state: CodeLightActivityAttributes.ContentState) -> String {
+    if let toolName = state.toolName, !toolName.isEmpty {
+        return toolName
+    }
+    return phaseLabel(state.phase)
 }
 
 // MARK: - Phase → AnimationState mapping
