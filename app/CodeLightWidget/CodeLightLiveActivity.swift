@@ -230,8 +230,8 @@ struct RotatingCompactText: View {
     }
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 3)) { context in
-            let index = Int(context.date.timeIntervalSinceReferenceDate / 3) % max(messages.count, 1)
+        TimelineView(.periodic(from: .now, by: 2)) { context in
+            let index = Int(context.date.timeIntervalSinceReferenceDate / 2) % max(messages.count, 1)
             Text(messages[index])
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(phaseColor(state.phase))
