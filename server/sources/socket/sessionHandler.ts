@@ -4,6 +4,7 @@ import { allocateSessionSeq } from '@/storage/seq';
 import type { EventRouter } from './eventRouter';
 import { canAccessSession } from '@/auth/deviceAccess';
 import { sendPushToDevice, sendLiveActivityUpdate } from '@/push/apns';
+import { deleteBlob } from '@/blob/blobStore';
 
 export function registerSessionHandler(
     socket: Socket,
@@ -43,9 +44,24 @@ export function registerSessionHandler(
                 },
             });
 
+            // Look up tag (Claude UUID) and path so receivers can route to a terminal
+            // even if they aren't currently tracking this session locally.
+            const sessionInfo = await db.session.findUnique({
+                where: { id: data.sid },
+                select: { tag: true, metadata: true },
+            });
+            let sessionTag: string | null = sessionInfo?.tag ?? null;
+            let sessionPath: string | null = null;
+            try {
+                const meta = JSON.parse(sessionInfo?.metadata || '{}');
+                if (typeof meta.path === 'string') sessionPath = meta.path;
+            } catch {}
+
             eventRouter.emitUpdate(deviceId, 'update', {
                 type: 'new-message',
                 sessionId: data.sid,
+                sessionTag,
+                sessionPath,
                 message: { id: message.id, seq, content: data.message, localId: data.localId },
             }, { type: 'all-interested-in-session', sessionId: data.sid }, socket);
 
@@ -178,5 +194,13 @@ export function registerSessionHandler(
             sessionId: data.sid,
             active: false,
         }, { type: 'all-interested-in-session', sessionId: data.sid });
+    });
+
+    // CodeIsland acknowledges that it successfully consumed a blob, so the server
+    // can drop it from disk immediately. No ack from CodeIsland = TTL sweeper handles it.
+    socket.on('blob-consumed', async (data: { blobId: string }) => {
+        if (!data?.blobId) return;
+        const ok = await deleteBlob(data.blobId);
+        if (ok) console.log(`[blob-consumed] deleted ${data.blobId}`);
     });
 }

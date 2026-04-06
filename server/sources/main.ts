@@ -1,6 +1,7 @@
 import { db } from '@/storage/db';
 import { startApi } from '@/api';
 import { startSocket } from '@/socket/socketServer';
+import { initBlobStore } from '@/blob/blobStore';
 import { config } from '@/config';
 
 async function main() {
@@ -11,6 +12,8 @@ async function main() {
 
     await db.$connect();
     console.log('Database connected');
+
+    await initBlobStore();
 
     const app = await startApi();
 

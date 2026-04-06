@@ -207,6 +207,26 @@ final class SocketClient {
         let (data, _) = try await URLSession.shared.data(for: request)
         return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
+
+    /// Upload an image blob. Returns the blobId on success.
+    func uploadBlob(data: Data, mime: String) async throws -> String {
+        let url = URL(string: "\(serverUrl)/v1/blobs")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(mime, forHTTPHeaderField: "Content-Type")
+        request.setValue(mime, forHTTPHeaderField: "X-Blob-Mime")
+        if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+        let (respData, response) = try await URLSession.shared.upload(for: request, from: data)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw NSError(domain: "CodeLight.Upload", code: (response as? HTTPURLResponse)?.statusCode ?? -1,
+                          userInfo: [NSLocalizedDescriptionKey: "Blob upload failed"])
+        }
+        let json = try JSONSerialization.jsonObject(with: respData) as? [String: Any] ?? [:]
+        guard let blobId = json["blobId"] as? String else {
+            throw NSError(domain: "CodeLight.Upload", code: -2, userInfo: [NSLocalizedDescriptionKey: "Missing blobId in response"])
+        }
+        return blobId
+    }
 }
 
 /// A chat message from the server.

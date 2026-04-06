@@ -69,7 +69,7 @@ struct SessionDetailView: View {
                 ContentUnavailableView(String(localized: "session_not_found"), systemImage: "exclamationmark.triangle")
             }
         }
-        .navigationTitle(session?.metadata?.title ?? String(localized: "session"))
+        .navigationTitle(session?.metadata?.displayProjectName ?? String(localized: "session"))
         .navigationBarTitleDisplayMode(.inline)
     }
 }

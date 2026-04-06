@@ -12,6 +12,13 @@ final class AppState: ObservableObject {
     @Published var currentServer: ServerConfig?
     @Published var sessions: [SessionInfo] = []
     @Published var isConnected = false
+    /// Time of the last real message received per session (not heartbeats/phase updates)
+    @Published var lastMessageTimeBySession: [String: Date] = [:]
+
+    /// Images the user sent locally, keyed by the blobId. Used by MessageRow to render
+    /// attached images the user just sent — server blobs are ephemeral and can't be
+    /// re-downloaded after delivery, so we keep a copy here until the app is killed.
+    @Published var sentImageCache: [String: Data] = [:]
 
     /// New message events — ChatView subscribes to this
     let newMessageSubject = PassthroughSubject<(sessionId: String, message: ChatMessage), Never>()
@@ -56,6 +63,14 @@ final class AppState: ObservableObject {
                 let chatMsg = ChatMessage(id: msg.id, seq: msg.seq, content: msg.content, localId: msg.localId)
                 self?.newMessageSubject.send((sessionId: sessionId, message: chatMsg))
 
+                // Track last real message time (skip phase status updates)
+                if let data = msg.content.data(using: .utf8),
+                   let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let type = dict["type"] as? String,
+                   type != "phase" {
+                    self?.lastMessageTimeBySession[sessionId] = Date()
+                }
+
                 // Trigger Dynamic Island based on message type
                 self?.updateLiveActivity(sessionId: sessionId, content: msg.content, serverName: server.name)
             }
@@ -87,10 +102,10 @@ final class AppState: ObservableObject {
 
     // MARK: - Messaging
 
-    func sendMessage(_ text: String, toSession sessionId: String) {
+    func sendMessage(_ text: String, toSession sessionId: String, localId: String? = nil) {
         guard let socket else { return }
-        let localId = UUID().uuidString
-        socket.sendMessage(sessionId: sessionId, content: text, localId: localId)
+        let id = localId ?? UUID().uuidString
+        socket.sendMessage(sessionId: sessionId, content: text, localId: id)
     }
 
     /// Send a model/mode change via session metadata update
@@ -125,7 +140,7 @@ final class AppState: ObservableObject {
             await MainActor.run {
                 LiveActivityManager.shared.updateGlobal(
                     activeSessionId: session.id,
-                    projectName: session.metadata?.title ?? "Session",
+                    projectName: session.metadata?.displayProjectName ?? "Session",
                     projectPath: session.metadata?.path,
                     phase: phase,
                     toolName: toolName,
@@ -190,7 +205,7 @@ final class AppState: ObservableObject {
               let type = dict["type"] as? String else { return }
 
         let sessionMeta = sessions.first(where: { $0.id == sessionId })?.metadata
-        let projectName = sessionMeta?.title ?? "Session"
+        let projectName = sessionMeta?.displayProjectName ?? "Session"
         let projectPath = sessionMeta?.path
 
         // Track user/assistant messages

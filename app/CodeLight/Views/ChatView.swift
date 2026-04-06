@@ -1,4 +1,12 @@
 import SwiftUI
+import PhotosUI
+
+/// A pending image attachment in the compose bar (before send).
+struct PendingAttachment: Identifiable {
+    let id = UUID()
+    let data: Data      // compressed JPEG, ready to upload
+    let thumbnail: UIImage
+}
 
 /// A conversation turn — user question + all Claude's responses until next user message.
 struct ConversationTurn: Identifiable {
@@ -18,6 +26,9 @@ struct ChatView: View {
 
     @State private var messages: [ChatMessage] = []
     @State private var inputText = ""
+    @State private var pendingAttachments: [PendingAttachment] = []
+    @State private var pickerSelections: [PhotosPickerItem] = []
+    @State private var isSending = false
     @State private var isLoading = true
     @State private var isLoadingMore = false
     @State private var hasMoreOlder = false
@@ -118,9 +129,15 @@ struct ChatView: View {
             await loadMessages()
             startLiveActivity()
         }
-        .refreshable { await loadMessages() }
         .onReceive(appState.newMessageSubject) { event in
             guard event.sessionId == sessionId else { return }
+            // Replace optimistic local message if server echoes back with same localId.
+            if let lid = event.message.localId,
+               let idx = messages.firstIndex(where: { $0.localId == lid }) {
+                messages[idx] = event.message
+                return
+            }
+            // Otherwise dedup by id and append.
             if !messages.contains(where: { $0.id == event.message.id }) {
                 messages.append(event.message)
             }
@@ -265,7 +282,48 @@ struct ChatView: View {
                 Spacer()
             }
 
+            // Attachment thumbnails
+            if !pendingAttachments.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(pendingAttachments) { att in
+                            ZStack(alignment: .topTrailing) {
+                                Image(uiImage: att.thumbnail)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 64, height: 64)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                Button {
+                                    pendingAttachments.removeAll { $0.id == att.id }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(.white, .black.opacity(0.7))
+                                }
+                                .offset(x: 4, y: -4)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .frame(height: 72)
+            }
+
             HStack(spacing: 8) {
+                PhotosPicker(
+                    selection: $pickerSelections,
+                    maxSelectionCount: 6,
+                    matching: .images
+                ) {
+                    Image(systemName: "photo.on.rectangle.angled")
+                        .font(.title3)
+                        .foregroundStyle(.blue)
+                }
+                .onChange(of: pickerSelections) { _, newItems in
+                    Task { await loadPickedImages(newItems) }
+                }
+
                 TextField(String(localized: "message_placeholder"), text: $inputText, axis: .vertical)
                     .textFieldStyle(.plain)
                     .padding(10)
@@ -273,11 +331,17 @@ struct ChatView: View {
                     .lineLimit(1...5)
 
                 Button { send() } label: {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(inputText.isEmpty ? .gray : .blue)
+                    if isSending {
+                        ProgressView()
+                            .controlSize(.small)
+                            .frame(width: 28, height: 28)
+                    } else {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(canSend ? .blue : .gray)
+                    }
                 }
-                .disabled(inputText.isEmpty)
+                .disabled(!canSend || isSending)
             }
         }
         .padding(.horizontal)
@@ -285,13 +349,37 @@ struct ChatView: View {
         .background(.bar)
     }
 
+    private var canSend: Bool {
+        !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !pendingAttachments.isEmpty
+    }
+
+    /// Read selected PhotosPicker items, compress, and stage them as attachments.
+    private func loadPickedImages(_ items: [PhotosPickerItem]) async {
+        var newAttachments: [PendingAttachment] = []
+        for item in items {
+            guard let raw = try? await item.loadTransferable(type: Data.self) else { continue }
+            guard let compressed = ImageCompressor.compress(raw) else { continue }
+            guard let thumb = UIImage(data: compressed) else { continue }
+            newAttachments.append(PendingAttachment(data: compressed, thumbnail: thumb))
+        }
+        await MainActor.run {
+            pendingAttachments.append(contentsOf: newAttachments)
+            pickerSelections.removeAll()
+        }
+    }
+
     // MARK: - Data
 
     private var sessionTitle: String {
-        appState.sessions.first { $0.id == sessionId }?.metadata?.title ?? String(localized: "session")
+        appState.sessions.first { $0.id == sessionId }?.metadata?.displayProjectName ?? String(localized: "session")
     }
 
     private func loadMessages() async {
+        // Initial load only — never destructively replace once we have data.
+        // New messages stream in via newMessageSubject; older ones come from the
+        // explicit "Load earlier" button. This guard makes the function safe even
+        // if SwiftUI re-runs the .task closure for any reason.
+        guard messages.isEmpty else { return }
         isLoading = true
         if let socket = appState.socket {
             let result = (try? await socket.fetchMessages(sessionId: sessionId, limit: 50)) ?? SocketClient.FetchResult(messages: [], hasMore: false)
@@ -314,17 +402,63 @@ struct ChatView: View {
 
     private func send() {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
+        let attachmentsToSend = pendingAttachments
+        guard !text.isEmpty || !attachmentsToSend.isEmpty else { return }
+
         inputText = ""
-        appState.sendMessage(text, toSession: sessionId)
-        let msg = ChatMessage(id: UUID().uuidString, seq: (messages.last?.seq ?? 0) + 1, content: text, localId: nil)
-        messages.append(msg)
+        pendingAttachments = []
+        isSending = true
+
+        Task {
+            // Upload blobs first (if any), keeping the raw data in a local cache so
+            // MessageRow can render the image immediately in history.
+            var blobIds: [String] = []
+            if !attachmentsToSend.isEmpty, let socket = appState.socket {
+                for att in attachmentsToSend {
+                    if let id = try? await socket.uploadBlob(data: att.data, mime: "image/jpeg") {
+                        blobIds.append(id)
+                        await MainActor.run { appState.sentImageCache[id] = att.data }
+                    }
+                }
+            }
+
+            // Compose payload. If there are blobs, send JSON; otherwise keep plain text so
+            // CodeIsland's existing "plain text = user message" path still works.
+            let payloadString: String
+            if !blobIds.isEmpty {
+                var payload: [String: Any] = ["type": "user", "text": text]
+                payload["images"] = blobIds.map { ["blobId": $0, "mime": "image/jpeg"] }
+                if let data = try? JSONSerialization.data(withJSONObject: payload),
+                   let str = String(data: data, encoding: .utf8) {
+                    payloadString = str
+                } else {
+                    payloadString = text
+                }
+            } else {
+                payloadString = text
+            }
+
+            // Share one localId between the socket emit and the optimistic
+            // ChatMessage so the server echo can replace the local row instead
+            // of producing a duplicate.
+            let localId = UUID().uuidString
+            await MainActor.run {
+                appState.sendMessage(payloadString, toSession: sessionId, localId: localId)
+                let msg = ChatMessage(id: "local-\(localId)",
+                                      seq: (messages.last?.seq ?? 0) + 1,
+                                      content: payloadString,
+                                      localId: localId)
+                messages.append(msg)
+                isSending = false
+            }
+        }
     }
 }
 
 // MARK: - Message Row
 
 private struct MessageRow: View {
+    @EnvironmentObject var appState: AppState
     let message: ChatMessage
 
     var body: some View {
@@ -337,7 +471,7 @@ private struct MessageRow: View {
                 .frame(width: 14, height: 14)
                 .padding(.top, 3)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(roleLabel(parsed.type))
                     .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(roleColor(parsed.type))
@@ -353,12 +487,44 @@ private struct MessageRow: View {
                         .font(.caption)
                         .foregroundStyle(.red)
                 default:
-                    markdownContent(parsed.text)
+                    if !parsed.text.isEmpty {
+                        markdownContent(parsed.text)
+                    }
+                    if !parsed.imageBlobIds.isEmpty {
+                        attachmentsView(blobIds: parsed.imageBlobIds)
+                    }
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 2)
+    }
+
+    @ViewBuilder
+    private func attachmentsView(blobIds: [String]) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(blobIds, id: \.self) { id in
+                    if let data = appState.sentImageCache[id],
+                       let img = UIImage(data: data) {
+                        Image(uiImage: img)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 120, height: 120)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(.systemGray5))
+                            .frame(width: 120, height: 120)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .font(.title2)
+                                    .foregroundStyle(.secondary)
+                            )
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Markdown Rendering
@@ -508,15 +674,26 @@ private struct MessageRow: View {
         let text: String
         let toolName: String?
         let toolStatus: String?
+        let imageBlobIds: [String]
     }
 
     private func parseContent(_ content: String) -> ParsedMessage {
         if let data = content.data(using: .utf8),
            let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
            let type = dict["type"] as? String {
-            return ParsedMessage(type: type, text: dict["text"] as? String ?? "", toolName: dict["toolName"] as? String, toolStatus: dict["toolStatus"] as? String)
+            var blobIds: [String] = []
+            if let images = dict["images"] as? [[String: Any]] {
+                blobIds = images.compactMap { $0["blobId"] as? String }
+            }
+            return ParsedMessage(
+                type: type,
+                text: dict["text"] as? String ?? "",
+                toolName: dict["toolName"] as? String,
+                toolStatus: dict["toolStatus"] as? String,
+                imageBlobIds: blobIds
+            )
         }
-        return ParsedMessage(type: "user", text: content, toolName: nil, toolStatus: nil)
+        return ParsedMessage(type: "user", text: content, toolName: nil, toolStatus: nil, imageBlobIds: [])
     }
 
     // MARK: - Style Helpers

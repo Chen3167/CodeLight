@@ -185,6 +185,7 @@ private func shortenPath(_ path: String) -> String {
 
 /// A single session row.
 private struct SessionRow: View {
+    @EnvironmentObject var appState: AppState
     let session: SessionInfo
 
     var body: some View {
@@ -197,9 +198,16 @@ private struct SessionRow: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(session.metadata?.title ?? session.tag)
+                Text(session.metadata?.displayProjectName ?? session.tag)
                     .font(.headline)
                     .lineLimit(1)
+
+                if let title = session.metadata?.title, !title.isEmpty {
+                    Text(title)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
 
                 if let path = session.metadata?.path {
                     HStack(spacing: 4) {
@@ -216,7 +224,7 @@ private struct SessionRow: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 2) {
+            VStack(alignment: .trailing, spacing: 4) {
                 if let model = session.metadata?.model {
                     Text(model.capitalized)
                         .font(.system(size: 9, weight: .medium))
@@ -226,9 +234,11 @@ private struct SessionRow: View {
                         .foregroundStyle(.blue)
                 }
 
-                Text(session.lastActiveAt, style: .relative)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                if let lastTime = appState.lastMessageTimeBySession[session.id] {
+                    Text(lastTime, style: .relative)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .padding(.vertical, 4)
