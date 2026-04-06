@@ -90,12 +90,9 @@ struct CodeLightLiveActivity: Widget {
                     .scaleEffect(0.45)
                     .frame(width: 24, height: 22)
             } compactTrailing: {
-                // Compact trailing — project name (most meaningful info)
-                Text(context.state.projectName)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(phaseColor(context.state.phase))
-                    .lineLimit(1)
-                    .frame(maxWidth: 100)
+                // Compact trailing — rotating text (project → question → summary)
+                RotatingCompactText(state: context.state)
+                    .frame(maxWidth: 110)
             } minimal: {
                 // Minimal — just the cat face (very small)
                 PixelCharacterView(state: animationState(for: context.state.phase))
@@ -199,6 +196,50 @@ private func compactText(_ state: CodeLightActivityAttributes.ContentState) -> S
         return toolName
     }
     return phaseLabel(state.phase)
+}
+
+/// Rotating text display for compact Dynamic Island trailing area.
+/// Cycles through: project name → user question → Claude summary.
+struct RotatingCompactText: View {
+    let state: CodeLightActivityAttributes.ContentState
+
+    private var messages: [String] {
+        var items: [String] = []
+
+        // Tool/phase indicator takes priority when active
+        if let tool = state.toolName, !tool.isEmpty {
+            items.append(tool)
+        } else {
+            items.append(phaseLabel(state.phase))
+        }
+
+        // Project name
+        items.append(state.projectName)
+
+        // User question
+        if let q = state.lastUserMessage, !q.isEmpty {
+            items.append("👤 \(q)")
+        }
+
+        // Claude summary
+        if let a = state.lastAssistantSummary, !a.isEmpty {
+            items.append("✨ \(a)")
+        }
+
+        return items
+    }
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 3)) { context in
+            let index = Int(context.date.timeIntervalSinceReferenceDate / 3) % max(messages.count, 1)
+            Text(messages[index])
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(phaseColor(state.phase))
+                .lineLimit(1)
+                .transition(.opacity)
+                .id(index)
+        }
+    }
 }
 
 // MARK: - Phase → AnimationState mapping
