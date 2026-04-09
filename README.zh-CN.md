@@ -14,7 +14,7 @@
 [![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-green?style=flat-square)](LICENSE.md)
 [![iOS](https://img.shields.io/badge/iOS-17%2B-black?style=flat-square&logo=apple)](https://github.com/xmqywx/CodeLight/releases)
 [![Swift](https://img.shields.io/badge/Swift-6-orange?style=flat-square&logo=swift)](https://swift.org)
-[![App Store](https://img.shields.io/badge/App_Store-即将上线-D7FE62?style=flat-square&logo=appstore&logoColor=black)](https://github.com/xmqywx/CodeLight)
+[![App Store](https://img.shields.io/badge/App_Store-下载-0D96F6?style=flat-square&logo=appstore&logoColor=white)](https://apps.apple.com/us/app/code-light/id6761744871)
 
 </div>
 
