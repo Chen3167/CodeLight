@@ -2,7 +2,7 @@ import type { Socket } from 'socket.io';
 import { db } from '@/storage/db';
 import { allocateSessionSeq } from '@/storage/seq';
 import type { EventRouter } from './eventRouter';
-import { canAccessSession } from '@/auth/deviceAccess';
+import { canAccessSession, getAccessibleDeviceIds } from '@/auth/deviceAccess';
 import { sendPushToDevice, sendLiveActivityUpdate } from '@/push/apns';
 import { deleteBlob } from '@/blob/blobStore';
 import { config } from '@/config';
@@ -237,9 +237,10 @@ export function registerSessionHandler(
                 if (parsed.type === 'phase') {
                     console.log(`[Phase] session=${data.sid.substring(0,10)} phase=${parsed.phase} tool=${parsed.toolName || '-'}`);
 
-                    // Find GLOBAL Live Activity token for this device (sessionId="__global__")
+                    // Find GLOBAL Live Activity tokens — only for iPhones linked to this Mac.
+                    const linkedIds = await getAccessibleDeviceIds(deviceId);
                     const globalTokens = await db.liveActivityToken.findMany({
-                        where: { sessionId: '__global__' },
+                        where: { sessionId: '__global__', deviceId: { in: linkedIds } },
                     });
 
                     if (globalTokens.length === 0) {
