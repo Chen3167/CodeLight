@@ -1,5 +1,5 @@
 /**
- * Ephemeral blob store for images sent from phone → CodeIsland.
+ * Ephemeral blob store for images sent from phone → CodeCAT.
  *
  * Design:
  *   - Files live in BLOB_DIR (default ./blobs), named <id>.bin
