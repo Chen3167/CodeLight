@@ -1,4 +1,5 @@
 import type { Socket } from 'socket.io';
+import { getAccessibleDeviceIds } from '@/auth/deviceAccess';
 
 export interface ClientConnection {
     connectionType: 'session-scoped' | 'user-scoped';
@@ -34,17 +35,20 @@ export class EventRouter {
         return Array.from(this.connections.get(deviceId) || []);
     }
 
-    /** Broadcast to ALL devices' connections matching the filter */
-    emitUpdate(
-        _deviceId: string,
+    /** Broadcast to connected devices that are linked to the sender via DeviceLink. */
+    async emitUpdate(
+        senderDeviceId: string,
         event: string,
         payload: unknown,
         filter: RecipientFilter,
         skipSocket?: Socket
     ) {
+        // Only send to devices that are linked to the sender (including the sender itself).
+        const allowedIds = new Set(await getAccessibleDeviceIds(senderDeviceId));
         let sent = 0;
         let skipped = 0;
         for (const [devId, conns] of this.connections.entries()) {
+            if (!allowedIds.has(devId)) { skipped += conns.size; continue; }
             for (const conn of conns) {
                 if (conn.socket === skipSocket) { skipped++; continue; }
                 if (this.shouldSend(conn, filter)) {
@@ -56,12 +60,11 @@ export class EventRouter {
             }
         }
         const type = (payload as any)?.type || event;
-        const deviceList = Array.from(this.connections.entries()).map(([id, cs]) => `${id.substring(0,10)}(${cs.size})`).join(', ');
-        console.log(`[EventRouter] ${type}: sent=${sent} skipped=${skipped} totalDevices=${this.connections.size} devices=[${deviceList}]`);
+        console.log(`[EventRouter] ${type}: sent=${sent} skipped=${skipped} allowed=${allowedIds.size} totalDevices=${this.connections.size}`);
     }
 
-    emitEphemeral(_deviceId: string, event: string, payload: unknown) {
-        this.emitUpdate(_deviceId, event, payload, { type: 'all' });
+    async emitEphemeral(senderDeviceId: string, event: string, payload: unknown) {
+        await this.emitUpdate(senderDeviceId, event, payload, { type: 'all' });
     }
 
     /** Emit an event to all connections of a specific target device. */
