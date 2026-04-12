@@ -59,6 +59,8 @@ struct ChatView: View {
     @State private var shouldAutoScroll = true
     @State private var lastSeenSeq: Int = 0
     @State private var deltaFetchTask: Task<Void, Never>? = nil
+    @State private var isReadingScreen = false
+    @State private var readScreenSentAt: Date? = nil
 
     private let models = ["opus", "sonnet", "haiku"]
     private let modes = ["auto", "default", "plan"]
@@ -482,6 +484,25 @@ struct ChatView: View {
                     }
 
                     Button {
+                        Haptics.light()
+                        sendReadScreen()
+                    } label: {
+                        ZStack {
+                            if isReadingScreen {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .tint(Theme.brand)
+                            } else {
+                                Image(systemName: "eye")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(Theme.textSecondary)
+                            }
+                        }
+                        .frame(width: 32, height: 32)
+                    }
+                    .disabled(isReadingScreen)
+
+                    Button {
                         Haptics.rigid()
                         sendControlKey("escape")
                     } label: {
@@ -558,6 +579,29 @@ struct ChatView: View {
         guard let data = try? JSONSerialization.data(withJSONObject: payload),
               let str = String(data: data, encoding: .utf8) else { return }
         appState.sendMessage(str, toSession: sessionId)
+    }
+
+    /// Ask the Mac to snapshot the current cmux tab and ship the buffer back as a
+    /// terminal_output message. Useful for verifying terminal state when something
+    /// looks off on the phone timeline. Shows a spinner until we see a new message
+    /// arrive or hit a 6s timeout.
+    private func sendReadScreen() {
+        guard !isReadingScreen else { return }
+        let payload: [String: Any] = ["type": "read-screen"]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload),
+              let str = String(data: data, encoding: .utf8) else { return }
+        isReadingScreen = true
+        readScreenSentAt = Date()
+        let sentSeq = messages.last?.seq ?? 0
+        appState.sendMessage(str, toSession: sessionId)
+        Task { @MainActor in
+            for _ in 0..<60 {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                if (messages.last?.seq ?? 0) > sentSeq { break }
+            }
+            isReadingScreen = false
+            readScreenSentAt = nil
+        }
     }
 
     /// Read selected PhotosPicker items, compress, and stage them as attachments.
